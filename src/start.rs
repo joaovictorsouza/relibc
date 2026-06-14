@@ -230,6 +230,13 @@ pub unsafe extern "C" fn relibc_start_v1(
 
     let auxvs = unsafe { get_auxvs(sp.auxv().cast()) };
     unsafe { crate::platform::init(auxvs) };
+    #[cfg(feature = "tuim")]
+    {
+        unsafe extern "C" {
+            fn fdio_init_vfs_ep(ep: u32);
+        }
+        unsafe { fdio_init_vfs_ep(1); }
+    }
     init_array();
     unsafe { crate::platform::logger::init() };
 

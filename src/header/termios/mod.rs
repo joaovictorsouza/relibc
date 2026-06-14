@@ -14,7 +14,7 @@ pub use crate::header::bits_winsize::winsize;
 
 pub use self::sys::*;
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "none"))]
 #[path = "linux.rs"]
 pub mod sys;
 
@@ -53,7 +53,7 @@ pub const TCSADRAIN: c_int = 1;
 pub const TCSAFLUSH: c_int = 2;
 
 /// See <https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/termios.h.html>.
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "none"))]
 #[repr(C)]
 #[derive(Default, Clone)]
 pub struct termios {
@@ -118,7 +118,7 @@ pub unsafe extern "C" fn tcgetsid(fd: c_int) -> pid_t {
 }
 
 /// See <https://pubs.opengroup.org/onlinepubs/9799919799/functions/cfgetispeed.html>.
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "none"))]
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn cfgetispeed(termios_p: *const termios) -> speed_t {
     unsafe { (*termios_p).__c_ispeed }
@@ -133,7 +133,7 @@ pub unsafe extern "C" fn cfgetispeed(termios_p: *const termios) -> speed_t {
 }
 
 /// See <https://pubs.opengroup.org/onlinepubs/9799919799/functions/cfgetospeed.html>.
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "none"))]
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn cfgetospeed(termios_p: *const termios) -> speed_t {
     unsafe { (*termios_p).__c_ospeed }
@@ -148,7 +148,7 @@ pub unsafe extern "C" fn cfgetospeed(termios_p: *const termios) -> speed_t {
 }
 
 /// See <https://pubs.opengroup.org/onlinepubs/9799919799/functions/cfsetispeed.html>.
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "none"))]
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn cfsetispeed(termios_p: *mut termios, speed: speed_t) -> c_int {
     match speed as usize {
@@ -173,7 +173,7 @@ pub unsafe extern "C" fn cfsetispeed(termios_p: *mut termios, speed: speed_t) ->
 }
 
 /// See <https://pubs.opengroup.org/onlinepubs/9799919799/functions/cfsetospeed.html>.
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "none"))]
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn cfsetospeed(termios_p: *mut termios, speed: speed_t) -> c_int {
     match speed as usize {

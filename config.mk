@@ -92,3 +92,14 @@ ifeq ($(TARGET),riscv64gc-unknown-redox)
 	export CPPFLAGS=-march=rv64gc -mabi=lp64d
 	LD_SO_PATH=lib/ld.so.1
 endif
+
+ifneq (,$(findstring aarch64-unknown-tuim,$(TARGET)))
+	export CC=aarch64-none-elf-gcc
+	export LD=aarch64-none-elf-ld
+	export AR=aarch64-none-elf-ar
+	export NM=aarch64-none-elf-nm
+	export OBJCOPY=aarch64-none-elf-objcopy
+	export CPPFLAGS=
+	LD_SO_PATH=lib/ld.so.1
+endif
+

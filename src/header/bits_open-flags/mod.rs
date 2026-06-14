@@ -1,6 +1,6 @@
 pub use self::sys::*;
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "none"))]
 #[path = "linux.rs"]
 pub mod sys;
 

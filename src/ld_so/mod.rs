@@ -132,14 +132,14 @@ fn static_init(
     }
 }
 
-#[cfg(any(target_os = "linux", target_os = "redox"))]
+#[cfg(any(target_os = "linux", target_os = "redox", target_os = "none"))]
 pub unsafe fn init(
     sp: &'static Stack,
     #[cfg(target_os = "redox")] thr_fd: redox_rt::proc::FdGuardUpper,
 ) {
     let tp: usize;
 
-    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+    #[cfg(all(any(target_os = "linux", target_os = "none"), target_arch = "x86_64"))]
     {
         const ARCH_GET_FS: usize = 0x1003;
         let mut val = 0usize;

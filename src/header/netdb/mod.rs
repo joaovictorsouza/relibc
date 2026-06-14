@@ -33,7 +33,7 @@ use crate::{
 
 use crate::header::netinet_in::sockaddr_in6;
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "none"))]
 #[path = "linux.rs"]
 pub mod sys;
 

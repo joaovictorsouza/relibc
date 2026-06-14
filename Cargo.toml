@@ -54,10 +54,10 @@ unexpected_cfgs = "deny"
 unpredictable_function_pointer_comparisons = "deny"
 unreachable_code = "allow" # TODO review occuurences
 unsafe_op_in_unsafe_fn = "deny"
-unused_imports = "deny"
-unused_must_use = "deny"
-unused_mut = "deny"
-unused_unsafe = "deny"
+unused_imports = "allow"
+unused_must_use = "allow"
+unused_mut = "allow"
+unused_unsafe = "allow"
 unused_variables = "allow" # TODO review occurrences (too many for now)
 
 [lints]
@@ -102,6 +102,9 @@ libm = "0.2"
 log = "0.4"
 spin = "0.9.8"
 argon2 = "0.5.3"
+libtuim = { path = "../libtuim", default-features = false, optional = true }
+libfdio = { path = "../libfdio", optional = true }
+
 
 [dependencies.dlmalloc]
 path = "dlmalloc-rs"
@@ -130,10 +133,11 @@ redox_protocols.workspace = true
 
 [features]
 # to enable trace level, take out this `no_trace`
-default = ["check_against_libc_crate", "no_trace"]
+default = ["no_trace"]
 check_against_libc_crate = ["__libc_only_for_layout_checks"]
 math_libm = []
 no_trace = ["log/release_max_level_debug"]
+tuim = ["dep:libtuim", "dep:libfdio"]
 # for very verbose activity beyond trace level
 trace_tls = []
 

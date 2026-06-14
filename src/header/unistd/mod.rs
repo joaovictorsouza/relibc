@@ -816,7 +816,7 @@ pub extern "C" fn nice(incr: c_int) -> c_int {
         return prio;
     }
 
-    let current_nice = 20 - prio;
+    let current_nice: c_int = 20 - prio;
     let new_nice = current_nice.saturating_add(incr).clamp(-20, 19);
 
     if Sys::setpriority(sys_resource::PRIO_PROCESS, 0, new_nice)

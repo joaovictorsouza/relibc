@@ -80,7 +80,7 @@ pub struct Pthread {
 pub struct OsTid {
     #[cfg(target_os = "redox")]
     pub thread_fd: usize,
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "none"))]
     pub thread_id: usize,
 }
 

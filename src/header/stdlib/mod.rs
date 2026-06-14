@@ -927,7 +927,7 @@ pub unsafe extern "C" fn posix_memalign(
 pub unsafe extern "C" fn posix_openpt(flags: c_int) -> c_int {
     #[cfg(target_os = "redox")]
     let r = unsafe { open(c"/scheme/pty/ptmx".as_ptr(), flags) };
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "none"))]
     let r = unsafe { open(c"/dev/ptmx".as_ptr(), flags) };
 
     if r < 0 && platform::ERRNO.get() == ENOSPC {
@@ -969,7 +969,7 @@ unsafe fn __ptsname_r(fd: c_int, buf: *mut c_char, buflen: size_t) -> c_int {
 
     if unsafe { ioctl(fd, TIOCGPTN, ptr::from_mut(&mut pty).cast::<c_void>()) } == 0 {
         // Linux and Redox use different resource names for PTS's.
-        #[cfg(target_os = "linux")]
+        #[cfg(any(target_os = "linux", target_os = "none"))]
         let name = format!("/dev/pts/{}", pty);
         #[cfg(target_os = "redox")]
         let name = format!("/scheme/pty/{}", pty);

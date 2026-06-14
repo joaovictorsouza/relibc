@@ -8,7 +8,7 @@
 #[path = "redox.rs"]
 pub mod sys;
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "none"))]
 #[path = "linux.rs"]
 pub mod sys;
 

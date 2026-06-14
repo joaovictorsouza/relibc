@@ -31,7 +31,7 @@ use crate::{
 use super::{errno::*, string::strncmp};
 
 /// cbindgen:ignore
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "none"))]
 const SEPARATOR: char = ':';
 
 /// cbindgen:ignore

@@ -4,7 +4,7 @@
 #[path = "sysconf/redox.rs"]
 mod sys;
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "none"))]
 #[path = "sysconf/linux.rs"]
 mod sys;
 

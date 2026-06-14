@@ -26,7 +26,7 @@ export CFLAGS=-I$(TARGET_HEADERS)
 
 PROFILE?=release
 
-HEADERS_UNPARSED=$(shell find src/header -mindepth 1 -maxdepth 1 -type d -not -name "_*" $(EXCEPT_MATH) -printf "%f\n")
+HEADERS_UNPARSED=$(shell find src/header -mindepth 1 -maxdepth 1 -type d -not -name "_*" $(EXCEPT_MATH) | sed 's|.*/||')
 HEADERS_DEPS=$(shell find src/header -type f \( -name "cbindgen.toml" -o -name "*.rs" \))
 #HEADERS=$(patsubst %,%.h,$(subst _,/,$(HEADERS_UNPARSED)))
 
@@ -74,6 +74,33 @@ install-headers: headers libs
 	mkdir -pv "$(DESTDIR)/include"
 	cp -rv "$(TARGET_HEADERS)"/* "$(DESTDIR)/include"
 
+ifeq ($(TARGET),aarch64-unknown-none)
+libs: \
+	$(BUILD)/$(PROFILE)/libc.a \
+	$(BUILD)/$(PROFILE)/crt0.o \
+	$(BUILD)/$(PROFILE)/crti.o \
+	$(BUILD)/$(PROFILE)/crtn.o
+
+install-libs: headers libs
+	mkdir -pv "$(DESTDIR)/lib"
+	cp -v "$(BUILD)/$(PROFILE)/libc.a" "$(DESTDIR)/lib"
+	cp -v "$(BUILD)/$(PROFILE)/crt0.o" "$(DESTDIR)/lib"
+	ln -vnfs crt0.o "$(DESTDIR)/lib/crt1.o"
+	ln -vnfs crt0.o "$(DESTDIR)/lib/Scrt1.o"
+	cp -v "$(BUILD)/$(PROFILE)/crti.o" "$(DESTDIR)/lib"
+	cp -v "$(BUILD)/$(PROFILE)/crtn.o" "$(DESTDIR)/lib"
+ifeq ($(USE_RUST_LIBM),)
+	cp -v "$(BUILD)/openlibm/libopenlibm.a" "$(DESTDIR)/lib/libm.a"
+else
+	$(AR) -rcs "$(DESTDIR)/lib/libm.a"
+endif
+	# Empty libraries for dl, pthread, rt, fdio, and tuim
+	$(AR) -rcs "$(DESTDIR)/lib/libdl.a"
+	$(AR) -rcs "$(DESTDIR)/lib/libpthread.a"
+	$(AR) -rcs "$(DESTDIR)/lib/librt.a"
+	$(AR) -rcs "$(DESTDIR)/lib/libfdio.a"
+	$(AR) -rcs "$(DESTDIR)/lib/libtuim.a"
+else
 libs: \
 	$(BUILD)/$(PROFILE)/libc.a \
 	$(BUILD)/$(PROFILE)/libc.so \
@@ -102,6 +129,7 @@ endif
 	$(AR) -rcs "$(DESTDIR)/lib/libdl.a"
 	$(AR) -rcs "$(DESTDIR)/lib/libpthread.a"
 	$(AR) -rcs "$(DESTDIR)/lib/librt.a"
+endif
 
 install-tests: tests
 	$(MAKE) -C tests
@@ -150,11 +178,14 @@ $(BUILD)/$(PROFILE)/ld.so: $(BUILD)/$(PROFILE)/ld_so.o $(BUILD)/$(PROFILE)/libc.
 	# TODO: merge ld.so with libc.so: --dynamic-list=dynamic-list-file
 	$(LD) --shared -Bsymbolic --no-relax -T ld_so/ld_script/$(TARGET).ld --gc-sections $^ -o $@
 
-$(BUILD)/$(PROFILE)/libc.a: $(BUILD)/$(PROFILE)/librelibc.a $(BUILD)/openlibm/libopenlibm.a
+$(BUILD)/$(PROFILE)/stdlib.o: src/c/stdlib.c
+	clang -target aarch64-unknown-none -nostdinc -nostdlib -fno-stack-protector -I$(TARGET_HEADERS) -c $< -o $@
+
+$(BUILD)/$(PROFILE)/libc.a: $(BUILD)/$(PROFILE)/librelibc.a $(BUILD)/openlibm/libopenlibm.a $(BUILD)/$(PROFILE)/stdlib.o
 	echo "create $@" > "$@.mri"
-	for lib in $^; do\
-		echo "addlib $$lib" >> "$@.mri"; \
-	done
+	echo "addlib $(BUILD)/$(PROFILE)/librelibc.a" >> "$@.mri"
+	echo "addlib $(BUILD)/openlibm/libopenlibm.a" >> "$@.mri"
+	echo "addmod $(BUILD)/$(PROFILE)/stdlib.o" >> "$@.mri"
 	echo "save" >> "$@.mri"
 	echo "end" >> "$@.mri"
 	$(AR) -M < "$@.mri"

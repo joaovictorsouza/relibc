@@ -20,18 +20,23 @@ mod pal;
 
 pub use self::sys::Sys;
 
-#[cfg(target_os = "linux")]
+#[cfg(feature = "tuim")]
+#[path = "tuim/mod.rs"]
+pub(crate) mod sys;
+
+#[cfg(all(target_os = "linux", not(feature = "tuim")))]
 #[path = "linux/mod.rs"]
 pub(crate) mod sys;
 
-#[cfg(target_os = "redox")]
+#[cfg(all(target_os = "redox", not(feature = "tuim")))]
 #[path = "redox/mod.rs"]
 pub(crate) mod sys;
+
 
 pub use self::rlb::{Line, RawLineBuffer};
 pub mod rlb;
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "none"))]
 pub mod auxv_defs;
 
 #[cfg(target_os = "redox")]

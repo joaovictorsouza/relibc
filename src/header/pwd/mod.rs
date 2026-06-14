@@ -20,23 +20,23 @@ use crate::{
     raw_cell::RawCell,
 };
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "none"))]
 mod linux;
 #[cfg(target_os = "redox")]
 mod redox;
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "none"))]
 use self::linux as sys;
 #[cfg(target_os = "redox")]
 use self::redox as sys;
 
 /// cbindgen:ignore
-#[cfg(target_os = "linux")]
-const SEPARATOR: u8 = b':';
+#[cfg(any(target_os = "linux", target_os = "none"))]
+pub(crate) const SEPARATOR: u8 = b':';
 
 /// cbindgen:ignore
 #[cfg(target_os = "redox")]
-const SEPARATOR: u8 = b';';
+pub(crate) const SEPARATOR: u8 = b';';
 
 /// See <https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/pwd.h.html>
 /// for POSIX minimum requirements, and
