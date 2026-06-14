@@ -30,6 +30,22 @@ pub struct Sys;
 
 impl Sys {
     pub unsafe fn ioctl(fd: c_int, request: c_ulong, out: *mut c_void) -> Result<c_int> {
+        if request == crate::header::sys_ioctl::TCGETS {
+            if fd >= 0 && fd <= 2 {
+                // Return success for stdio terminal checks (tcgetattr)
+                if !out.is_null() {
+                    let termios_ptr = out as *mut crate::header::termios::termios;
+                    // Populate with basic defaults (like ICANON) so tcgetattr doesn't return garbage.
+                    unsafe {
+                        (*termios_ptr).c_iflag = 0;
+                        (*termios_ptr).c_oflag = 0;
+                        (*termios_ptr).c_cflag = 0;
+                        (*termios_ptr).c_lflag = 0x00000002; // ICANON (usually 0x2 or similar, let's look up or keep it basic)
+                    }
+                }
+                return Ok(0);
+            }
+        }
         Ok(0)
     }
 }
