@@ -113,6 +113,29 @@ impl<W: crate::io::Write> Writer for LineWriter<W> {
     }
 }
 
+/// Unbuffered writer — each `write` call goes directly to the underlying fd.
+struct DirectWriter(File);
+
+impl Write for DirectWriter {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        let mut f = &self.0;
+        f.write(buf)
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
+impl Pending for DirectWriter {
+    fn pending(&self) -> size_t {
+        0
+    }
+}
+
+impl Writer for DirectWriter {
+    fn purge(&mut self) {}
+}
+
 /// This struct gets exposed to the C API.
 pub struct FILE {
     lock: RlctMutex,
@@ -1242,16 +1265,18 @@ pub unsafe extern "C" fn setvbuf(
     mut size: size_t,
 ) -> c_int {
     let mut stream = unsafe { (*stream).lock() };
+    if mode == _IONBF {
+        stream.writer = Box::new(DirectWriter(unsafe { stream.file.get_ref() }));
+        stream.read_buf = Buffer::Owned(vec![0; 1]);
+        stream.flags |= F_SVB;
+        return 0;
+    }
     // Set a buffer of size `size` if no buffer is given
     stream.read_buf = if buf.is_null() || size == 0 {
         if size == 0 {
             size = BUFSIZ as usize;
         }
-        // TODO: Make it unbuffered if _IONBF
-        // if mode == _IONBF {
-        // } else {
         Buffer::Owned(vec![0; size])
-    // }
     } else {
         Buffer::Borrowed(unsafe { slice::from_raw_parts_mut(buf.cast::<u8>(), size) })
     };

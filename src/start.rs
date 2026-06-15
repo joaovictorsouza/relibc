@@ -240,6 +240,13 @@ pub unsafe extern "C" fn relibc_start_v1(
     init_array();
     unsafe { crate::platform::logger::init() };
 
+    // Tuim: force unbuffered stdout/stderr so prompts without '\n' are visible immediately.
+    #[cfg(feature = "tuim")]
+    unsafe {
+        stdio::setvbuf(stdio::stdout, ptr::null_mut(), stdio::_IONBF, 0);
+        stdio::setvbuf(stdio::stderr, ptr::null_mut(), stdio::_IONBF, 0);
+    }
+
     // Run preinit array
     {
         let mut f = core::ptr::from_ref(unsafe { &__preinit_array_start });
