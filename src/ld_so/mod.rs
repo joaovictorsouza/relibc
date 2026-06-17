@@ -210,3 +210,22 @@ pub unsafe fn fini() {
         linker.fini();
     }
 }
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn relibc_ldso_init(sp: *const Stack) {
+    // 1. Initialize TCB and TLS (allocates TCB, sets up tpidr_el0)
+    unsafe {
+        init(&*sp);
+    }
+
+    // 2. Initialize the default Linker and store it in Tcb
+    if let Some(tcb) = unsafe { Tcb::current() } {
+        if tcb.mspace.is_null() {
+            tcb.mspace = crate::ALLOCATOR.get();
+        }
+        if tcb.linker_ptr.is_null() {
+            let linker = linker::Linker::new(linker::Config::default());
+            tcb.linker_ptr = alloc::boxed::Box::into_raw(alloc::boxed::Box::new(crate::sync::mutex::Mutex::new(linker)));
+        }
+    }
+}
